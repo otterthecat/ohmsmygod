@@ -95,7 +95,7 @@ Circuit.prototype.getAmperage = function(){
 Circuit.prototype.getStats = function(){
 
     return {
-        'poweredOn': this.isPowerOn,
+        'poweredOn': this.isOn,
         "batteries": this.batteries,
         "resistors": this.resistors,
         "votage": this.getVoltage(),
