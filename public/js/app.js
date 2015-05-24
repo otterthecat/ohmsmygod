@@ -1,26 +1,31 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
-var data = require('./data');
+var ui = require('./ui');
+var Battery = require('./components/battery');
+var Resistor = require('./components/resistor');
 var calculator = require('./calculator');
 var lightbulb = require('./lightbulb');
+var Circuit = require('./circuit');
 
-calculator.on('value:voltage', function(voltage){
-    console.log('voltage is ', voltage);
-});
+var battery9v = new Battery();
+var resistor100 = new Resistor();
 
-calculator.on('value:resistance', function(resistance){
-    console.log('resistance is ', resistance);
-});
+var circuit = new Circuit();
+circuit.addBattery(battery9v)
+    .addResistor(resistor100)
+    .on('circuit:on', function(){
+        console.log('Circuit turned on');
+        console.log('Circuit current is ', this.getCurrent());
+    })
+    .on('circuit:off', function(){
+        console.log('Circuit truned off');
+    });
 
-calculator.on('value:current', function(current){
-    console.log('current is ', current);
-});
+ui.setOnSwitch('#power-on')
+    .setOffSwitch('#power-off')
+    .on('switch:on', circuit.turnOn.bind(circuit))
+    .on('switch:off', circuit.turnOff.bind(circuit));
 
-
-calculator.getVoltage(data.current, data.resistance);
-calculator.getCurrent(data.resistance, data.voltage);
-calculator.getResistance(data.current, data. voltage);
-
-},{"./calculator":2,"./data":3,"./lightbulb":4}],2:[function(require,module,exports){
+},{"./calculator":2,"./circuit":3,"./components/battery":4,"./components/resistor":5,"./lightbulb":6,"./ui":7}],2:[function(require,module,exports){
 var EventEmitter = require('events').EventEmitter;
 var util = require('util');
 
@@ -49,16 +54,112 @@ Calculator.prototype.getResistance = function(current, voltage){
 
 module.exports = new Calculator();
 
-},{"events":5,"util":9}],3:[function(require,module,exports){
-module.exports = {
-    "voltage": 20,
-    "resistance": 2,
-    "current": 10
+},{"events":8,"util":12}],3:[function(require,module,exports){
+var EventEmitter = require('events').EventEmitter;
+var util = require('util');
+
+var Circuit = function(){
+    EventEmitter.call(this);
+
+    this.batteries = [];
+    this.resistors = [];
+    this.isOn = false;
+};
+util.inherits(Circuit, EventEmitter);
+
+Circuit.prototype.turnOn = function(){
+    this.isOn = true;
+    this.emit('circuit:on', this);
+    return this;
 };
 
-},{}],4:[function(require,module,exports){
+Circuit.prototype.turnOff = function(){
+    this.isOn = false;
+    this.emit('circuit:off', this);
+    return this;
+};
+
+Circuit.prototype.addBattery = function(battery){
+    this.batteries.push(battery);
+    this.emit('circuit:add:battery', this);
+    return this;
+};
+
+Circuit.prototype.getVoltage = function(){
+    var totalVoltage = 0;
+    this.batteries.forEach(function(battery){
+        totalVoltage += battery.volts;
+    });
+    return totalVoltage;
+};
+
+Circuit.prototype.addResistor = function(resistor){
+    this.resistors.push(resistor);
+    this.emit('circuit:add:resistor', this);
+    return this;
+};
+
+Circuit.prototype.getResistance = function(){
+    var totalResistance = 0;
+    this.resistors.forEach(function(resistor){
+        totalResistance += resistor.ohms;
+    });
+    return totalResistance;
+};
+
+Circuit.prototype.getCurrent = function(){
+    return this.getVoltage() * this.getResistance();
+};
+
+module.exports = Circuit;
+
+},{"events":8,"util":12}],4:[function(require,module,exports){
+var Battery = function(options){
+    this.volts = options ? options.volts : 9;
+    this.amps = options ? options.amps : 0;
+};
+
+module.exports = Battery;
 
 },{}],5:[function(require,module,exports){
+var Resistor = function(ohms){
+    this.ohms = ohms || 100;
+};
+
+module.exports = Resistor;
+
+},{}],6:[function(require,module,exports){
+
+},{}],7:[function(require,module,exports){
+var EventEmitter = require('events').EventEmitter;
+var util = require('util');
+
+var Ui = function(){
+    EventEmitter.call(this);
+};
+util.inherits(Ui, EventEmitter);
+
+Ui.prototype.setOnSwitch = function(selector){
+    this.powerOnBtn = document.querySelector(selector);
+    this.powerOnBtn.addEventListener('click', function(){
+        this.emit('switch:on');
+    }.bind(this));
+
+    return this;
+};
+
+Ui.prototype.setOffSwitch = function(selector){
+    this.powerOffBtn = document.querySelector(selector);
+    this.powerOffBtn.addEventListener('click', function(){
+        this.emit('switch:off');
+    }.bind(this));
+
+    return this;
+};
+
+module.exports = new Ui();
+
+},{"events":8,"util":12}],8:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -361,7 +462,7 @@ function isUndefined(arg) {
   return arg === void 0;
 }
 
-},{}],6:[function(require,module,exports){
+},{}],9:[function(require,module,exports){
 if (typeof Object.create === 'function') {
   // implementation from standard node.js 'util' module
   module.exports = function inherits(ctor, superCtor) {
@@ -386,7 +487,7 @@ if (typeof Object.create === 'function') {
   }
 }
 
-},{}],7:[function(require,module,exports){
+},{}],10:[function(require,module,exports){
 // shim for using process in browser
 
 var process = module.exports = {};
@@ -474,14 +575,14 @@ process.chdir = function (dir) {
     throw new Error('process.chdir is not supported');
 };
 
-},{}],8:[function(require,module,exports){
+},{}],11:[function(require,module,exports){
 module.exports = function isBuffer(arg) {
   return arg && typeof arg === 'object'
     && typeof arg.copy === 'function'
     && typeof arg.fill === 'function'
     && typeof arg.readUInt8 === 'function';
 }
-},{}],9:[function(require,module,exports){
+},{}],12:[function(require,module,exports){
 (function (process,global){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -1071,4 +1172,4 @@ function hasOwnProperty(obj, prop) {
 }
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./support/isBuffer":8,"_process":7,"inherits":6}]},{},[1]);
+},{"./support/isBuffer":11,"_process":10,"inherits":9}]},{},[1]);
