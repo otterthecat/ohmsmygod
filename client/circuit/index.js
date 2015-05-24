@@ -33,7 +33,7 @@ Circuit.prototype.getVoltage = function(){
     this.batteries.forEach(function(battery){
         totalVoltage += battery.volts;
     });
-    return totalVoltage;
+    return this.isOn ? totalVoltage : 0;
 };
 
 Circuit.prototype.addResistor = function(resistor){
@@ -52,6 +52,28 @@ Circuit.prototype.getResistance = function(){
 
 Circuit.prototype.getCurrent = function(){
     return this.getVoltage() * this.getResistance();
+};
+
+Circuit.prototype.getWatts = function(){
+    return this.getVoltage() * this.getAmperage();
+};
+
+Circuit.prototype.getAmperage = function(){
+    return this.getVoltage() / this.getResistance();
+};
+
+Circuit.prototype.getStats = function(){
+
+    return {
+        'poweredOn': this.isPowerOn,
+        "batteries": this.batteries,
+        "resistors": this.resistors,
+        "votage": this.getVoltage(),
+        "resistance": this.getResistance(),
+        "current": this.getCurrent(),
+        "watts": this.getWatts(),
+        "amps": this.getAmperage()
+    };
 };
 
 module.exports = Circuit;

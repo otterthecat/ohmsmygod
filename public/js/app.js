@@ -1,31 +1,4 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
-var ui = require('./ui');
-var Battery = require('./components/battery');
-var Resistor = require('./components/resistor');
-var calculator = require('./calculator');
-var lightbulb = require('./lightbulb');
-var Circuit = require('./circuit');
-
-var battery9v = new Battery();
-var resistor100 = new Resistor();
-
-var circuit = new Circuit();
-circuit.addBattery(battery9v)
-    .addResistor(resistor100)
-    .on('circuit:on', function(){
-        console.log('Circuit turned on');
-        console.log('Circuit current is ', this.getCurrent());
-    })
-    .on('circuit:off', function(){
-        console.log('Circuit truned off');
-    });
-
-ui.setOnSwitch('#power-on')
-    .setOffSwitch('#power-off')
-    .on('switch:on', circuit.turnOn.bind(circuit))
-    .on('switch:off', circuit.turnOff.bind(circuit));
-
-},{"./calculator":2,"./circuit":3,"./components/battery":4,"./components/resistor":5,"./lightbulb":6,"./ui":7}],2:[function(require,module,exports){
 var EventEmitter = require('events').EventEmitter;
 var util = require('util');
 
@@ -54,7 +27,7 @@ Calculator.prototype.getResistance = function(current, voltage){
 
 module.exports = new Calculator();
 
-},{"events":8,"util":12}],3:[function(require,module,exports){
+},{"events":7,"util":11}],2:[function(require,module,exports){
 var EventEmitter = require('events').EventEmitter;
 var util = require('util');
 
@@ -90,7 +63,7 @@ Circuit.prototype.getVoltage = function(){
     this.batteries.forEach(function(battery){
         totalVoltage += battery.volts;
     });
-    return totalVoltage;
+    return this.isOn ? totalVoltage : 0;
 };
 
 Circuit.prototype.addResistor = function(resistor){
@@ -111,9 +84,31 @@ Circuit.prototype.getCurrent = function(){
     return this.getVoltage() * this.getResistance();
 };
 
+Circuit.prototype.getWatts = function(){
+    return this.getVoltage() * this.getAmperage();
+};
+
+Circuit.prototype.getAmperage = function(){
+    return this.getVoltage() / this.getResistance();
+};
+
+Circuit.prototype.getStats = function(){
+
+    return {
+        'poweredOn': this.isPowerOn,
+        "batteries": this.batteries,
+        "resistors": this.resistors,
+        "votage": this.getVoltage(),
+        "resistance": this.getResistance(),
+        "current": this.getCurrent(),
+        "watts": this.getWatts(),
+        "amps": this.getAmperage()
+    };
+};
+
 module.exports = Circuit;
 
-},{"events":8,"util":12}],4:[function(require,module,exports){
+},{"events":7,"util":11}],3:[function(require,module,exports){
 var Battery = function(options){
     this.volts = options ? options.volts : 9;
     this.amps = options ? options.amps : 0;
@@ -121,7 +116,43 @@ var Battery = function(options){
 
 module.exports = Battery;
 
-},{}],5:[function(require,module,exports){
+},{}],4:[function(require,module,exports){
+var EventEmitter = require('events').EventEmitter;
+var util = require('util');
+
+var Lightbulb = function(){
+    EventEmitter.call(this);
+    this.maxVoltage = 1.5;
+
+    this.on('shine', this.illuminate);
+    this.on('explode', this.explode);
+    this.on('no-power', function(){
+        console.log('there is no power coming to bulb');
+    });
+};
+util.inherits(Lightbulb, EventEmitter);
+
+Lightbulb.prototype.consume = function(v){
+    if (v > this.maxVoltage){
+        this.emit('explode')
+    } else if (v === 0) {
+        this.emit('no-power');
+    } else {
+        this.emit('shine');
+    }
+};
+
+Lightbulb.prototype.illuminate = function(){
+    console.log('light is shining')
+};
+
+Lightbulb.prototype.explode = function(){
+    console.log('BOOM! Everyone is dead');
+};
+
+
+module.exports = Lightbulb;
+},{"events":7,"util":11}],5:[function(require,module,exports){
 var Resistor = function(ohms){
     this.ohms = ohms || 100;
 };
@@ -129,8 +160,6 @@ var Resistor = function(ohms){
 module.exports = Resistor;
 
 },{}],6:[function(require,module,exports){
-
-},{}],7:[function(require,module,exports){
 var EventEmitter = require('events').EventEmitter;
 var util = require('util');
 
@@ -159,7 +188,7 @@ Ui.prototype.setOffSwitch = function(selector){
 
 module.exports = new Ui();
 
-},{"events":8,"util":12}],8:[function(require,module,exports){
+},{"events":7,"util":11}],7:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -462,7 +491,7 @@ function isUndefined(arg) {
   return arg === void 0;
 }
 
-},{}],9:[function(require,module,exports){
+},{}],8:[function(require,module,exports){
 if (typeof Object.create === 'function') {
   // implementation from standard node.js 'util' module
   module.exports = function inherits(ctor, superCtor) {
@@ -487,73 +516,76 @@ if (typeof Object.create === 'function') {
   }
 }
 
-},{}],10:[function(require,module,exports){
+},{}],9:[function(require,module,exports){
 // shim for using process in browser
 
 var process = module.exports = {};
+var queue = [];
+var draining = false;
+var currentQueue;
+var queueIndex = -1;
 
-process.nextTick = (function () {
-    var canSetImmediate = typeof window !== 'undefined'
-    && window.setImmediate;
-    var canMutationObserver = typeof window !== 'undefined'
-    && window.MutationObserver;
-    var canPost = typeof window !== 'undefined'
-    && window.postMessage && window.addEventListener
-    ;
-
-    if (canSetImmediate) {
-        return function (f) { return window.setImmediate(f) };
+function cleanUpNextTick() {
+    draining = false;
+    if (currentQueue.length) {
+        queue = currentQueue.concat(queue);
+    } else {
+        queueIndex = -1;
     }
-
-    var queue = [];
-
-    if (canMutationObserver) {
-        var hiddenDiv = document.createElement("div");
-        var observer = new MutationObserver(function () {
-            var queueList = queue.slice();
-            queue.length = 0;
-            queueList.forEach(function (fn) {
-                fn();
-            });
-        });
-
-        observer.observe(hiddenDiv, { attributes: true });
-
-        return function nextTick(fn) {
-            if (!queue.length) {
-                hiddenDiv.setAttribute('yes', 'no');
-            }
-            queue.push(fn);
-        };
+    if (queue.length) {
+        drainQueue();
     }
+}
 
-    if (canPost) {
-        window.addEventListener('message', function (ev) {
-            var source = ev.source;
-            if ((source === window || source === null) && ev.data === 'process-tick') {
-                ev.stopPropagation();
-                if (queue.length > 0) {
-                    var fn = queue.shift();
-                    fn();
-                }
-            }
-        }, true);
-
-        return function nextTick(fn) {
-            queue.push(fn);
-            window.postMessage('process-tick', '*');
-        };
+function drainQueue() {
+    if (draining) {
+        return;
     }
+    var timeout = setTimeout(cleanUpNextTick);
+    draining = true;
 
-    return function nextTick(fn) {
-        setTimeout(fn, 0);
-    };
-})();
+    var len = queue.length;
+    while(len) {
+        currentQueue = queue;
+        queue = [];
+        while (++queueIndex < len) {
+            currentQueue[queueIndex].run();
+        }
+        queueIndex = -1;
+        len = queue.length;
+    }
+    currentQueue = null;
+    draining = false;
+    clearTimeout(timeout);
+}
 
+process.nextTick = function (fun) {
+    var args = new Array(arguments.length - 1);
+    if (arguments.length > 1) {
+        for (var i = 1; i < arguments.length; i++) {
+            args[i - 1] = arguments[i];
+        }
+    }
+    queue.push(new Item(fun, args));
+    if (queue.length === 1 && !draining) {
+        setTimeout(drainQueue, 0);
+    }
+};
+
+// v8 likes predictible objects
+function Item(fun, array) {
+    this.fun = fun;
+    this.array = array;
+}
+Item.prototype.run = function () {
+    this.fun.apply(null, this.array);
+};
 process.title = 'browser';
 process.browser = true;
 process.env = {};
 process.argv = [];
+process.version = ''; // empty string to avoid regexp issues
+process.versions = {};
 
 function noop() {}
 
@@ -574,15 +606,16 @@ process.cwd = function () { return '/' };
 process.chdir = function (dir) {
     throw new Error('process.chdir is not supported');
 };
+process.umask = function() { return 0; };
 
-},{}],11:[function(require,module,exports){
+},{}],10:[function(require,module,exports){
 module.exports = function isBuffer(arg) {
   return arg && typeof arg === 'object'
     && typeof arg.copy === 'function'
     && typeof arg.fill === 'function'
     && typeof arg.readUInt8 === 'function';
 }
-},{}],12:[function(require,module,exports){
+},{}],11:[function(require,module,exports){
 (function (process,global){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -1172,4 +1205,34 @@ function hasOwnProperty(obj, prop) {
 }
 
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./support/isBuffer":11,"_process":10,"inherits":9}]},{},[1]);
+},{"./support/isBuffer":10,"_process":9,"inherits":8}],12:[function(require,module,exports){
+var ui = require('./ui');
+var Battery = require('./components/battery');
+var Resistor = require('./components/resistor');
+var calculator = require('./calculator');
+var Lightbulb = require('./components/lightbulb');
+var Circuit = require('./circuit');
+
+var battery9v = new Battery();
+var resistor100 = new Resistor();
+var lightbulb = new Lightbulb();
+
+var circuit = new Circuit();
+circuit.addBattery(battery9v)
+    .addResistor(resistor100)
+    .on('circuit:on', function(){
+        console.log('Circuit turned on');
+        console.log('circuit data is ', this.getStats());
+        lightbulb.consume(this.getWatts());
+    })
+    .on('circuit:off', function(){
+        console.log('Circuit truned off');
+        lightbulb.consume(this.getWatts());
+    });
+
+ui.setOnSwitch('#power-on')
+    .setOffSwitch('#power-off')
+    .on('switch:on', circuit.turnOn.bind(circuit))
+    .on('switch:off', circuit.turnOff.bind(circuit));
+
+},{"./calculator":1,"./circuit":2,"./components/battery":3,"./components/lightbulb":4,"./components/resistor":5,"./ui":6}]},{},[12]);
