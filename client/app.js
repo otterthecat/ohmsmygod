@@ -5,7 +5,7 @@ var calculator = require('./calculator');
 var Lightbulb = require('./components/lightbulb');
 var Circuit = require('./circuit');
 
-var battery9v = new Battery();
+var battery5v = new Battery();
 var lightbulb = new Lightbulb();
 // with default batter & lightbulb settings,
 // things should not blow up. However, if you're
@@ -14,7 +14,7 @@ var lightbulb = new Lightbulb();
 var resistor100 = new Resistor();
 
 var circuit = new Circuit();
-circuit.addBattery(battery9v)
+circuit.addBattery(battery5v)
     .addResistor(resistor100)
     .on('circuit:on', function(){
         lightbulb.consume(this.getStats());
