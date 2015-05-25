@@ -17,16 +17,31 @@ var circuit = new Circuit();
 circuit.addBattery(battery9v)
     .addResistor(resistor100)
     .on('circuit:on', function(){
-        console.log('Circuit turned on');
-        console.log('circuit data is ', this.getStats());
         lightbulb.consume(this.getStats());
+        ui.emit('ui:update:lightbulb', 'Circuit turned on.&#10;');
     })
     .on('circuit:off', function(){
-        console.log('Circuit truned off');
         lightbulb.consume(this.getStats());
+        ui.emit('ui:update:lightbulb', 'Circuit turned off&#10;')
+    })
+    .on('circuit:set:resistance', function(stats){
+        lightbulb.consume(stats);
+    });
+
+lightbulb.on('explode', function(){
+        ui.emit('ui:update:lightbulb', 'BOOM! Everyone is dead.&#10;');
+    })
+    .on('shine', function(){
+        ui.emit('ui:update:lightbulb', 'Light is shining&#10;');
+    })
+    .on('no-power', function(){
+        ui.emit('ui:update:lightbulb', 'No power to bulb&#10;');
     });
 
 ui.setOnSwitch('#power-on')
     .setOffSwitch('#power-off')
+    .setSlider('#slider', '#slider-value', function(value){
+        circuit.setResitance(value);
+    }.bind(ui))
     .on('switch:on', circuit.turnOn.bind(circuit))
     .on('switch:off', circuit.turnOff.bind(circuit));

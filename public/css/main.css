@@ -1,0 +1,31 @@
+button {
+    color: white;
+}
+
+#power-on{
+    background-color: green;
+}
+
+#power-off{
+    background-color: red;
+}
+
+div {
+    padding: 10px;
+    border: dotted 1px #333;
+    margin: 10px 0;
+    width: 300px;
+}
+
+.slider-control::before {
+    content: '0';
+}
+.slider-control::after {
+    content: '900';
+}
+
+
+
+input[type='range']{
+    
+}

@@ -42,6 +42,15 @@ Circuit.prototype.addResistor = function(resistor){
     return this;
 };
 
+Circuit.prototype.setResitance = function(value){
+    this.resistors = [{
+        'ohms': value
+    }];
+    this.emit('circuit:set:resistance', this.getStats());
+
+    return this;
+};
+
 Circuit.prototype.getResistance = function(){
     var totalResistance = 0;
     this.resistors.forEach(function(resistor){
@@ -59,7 +68,8 @@ Circuit.prototype.getWatts = function(){
 };
 
 Circuit.prototype.getStats = function(){
-
+    console.log('pre stat ', this.resistors);
+    console.log('getstats ', this.getResistance());
     return {
         'poweredOn': this.isOn,
         "batteries": this.batteries,

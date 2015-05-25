@@ -3,8 +3,22 @@ var util = require('util');
 
 var Ui = function(){
     EventEmitter.call(this);
+    this.on('ui:update:lightbulb', function(data){
+        document.querySelector('#bulb-output').innerHTML  += data;
+    });
 };
 util.inherits(Ui, EventEmitter);
+
+Ui.prototype.setSlider = function(slideSelector, displaySelector, cb){
+    this.slider = document.querySelector(slideSelector);
+    this.sliderDisplay = document.querySelector(displaySelector);
+    this.slider.addEventListener('change', function(e){
+        this.sliderDisplay.value = e.target.value;
+        cb(e.target.value);
+    }.bind(this));
+
+    return this;
+};
 
 Ui.prototype.setOnSwitch = function(selector){
     this.powerOnBtn = document.querySelector(selector);
