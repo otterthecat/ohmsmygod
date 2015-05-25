@@ -51,15 +51,11 @@ Circuit.prototype.getResistance = function(){
 };
 
 Circuit.prototype.getCurrent = function(){
-    return this.getVoltage() * this.getResistance();
+    return this.getVoltage() / this.getResistance();
 };
 
 Circuit.prototype.getWatts = function(){
-    return this.getVoltage() * this.getAmperage();
-};
-
-Circuit.prototype.getAmperage = function(){
-    return this.getVoltage() / this.getResistance();
+    return this.getVoltage() * this.getCurrent();
 };
 
 Circuit.prototype.getStats = function(){
@@ -68,11 +64,10 @@ Circuit.prototype.getStats = function(){
         'poweredOn': this.isOn,
         "batteries": this.batteries,
         "resistors": this.resistors,
-        "votage": this.getVoltage(),
+        "voltage": this.getVoltage(),
         "resistance": this.getResistance(),
         "current": this.getCurrent(),
-        "watts": this.getWatts(),
-        "amps": this.getAmperage()
+        "watts": this.getWatts()
     };
 };
 

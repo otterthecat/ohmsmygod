@@ -6,8 +6,12 @@ var Lightbulb = require('./components/lightbulb');
 var Circuit = require('./circuit');
 
 var battery9v = new Battery();
-var resistor100 = new Resistor();
 var lightbulb = new Lightbulb();
+// with default batter & lightbulb settings,
+// things should not blow up. However, if you're
+// a Bond villian, you may wish to make a resistor
+// less than 150ohms....
+var resistor100 = new Resistor();
 
 var circuit = new Circuit();
 circuit.addBattery(battery9v)
@@ -15,11 +19,11 @@ circuit.addBattery(battery9v)
     .on('circuit:on', function(){
         console.log('Circuit turned on');
         console.log('circuit data is ', this.getStats());
-        lightbulb.consume(this.getWatts());
+        lightbulb.consume(this.getStats());
     })
     .on('circuit:off', function(){
         console.log('Circuit truned off');
-        lightbulb.consume(this.getWatts());
+        lightbulb.consume(this.getStats());
     });
 
 ui.setOnSwitch('#power-on')
