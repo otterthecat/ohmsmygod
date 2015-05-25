@@ -23,9 +23,3 @@ div {
 .slider-control::after {
     content: '900';
 }
-
-
-
-input[type='range']{
-    
-}
