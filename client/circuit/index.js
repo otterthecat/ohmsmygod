@@ -68,8 +68,7 @@ Circuit.prototype.getWatts = function(){
 };
 
 Circuit.prototype.getStats = function(){
-    console.log('pre stat ', this.resistors);
-    console.log('getstats ', this.getResistance());
+
     return {
         'poweredOn': this.isOn,
         "batteries": this.batteries,

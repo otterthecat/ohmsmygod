@@ -16,7 +16,6 @@ util.inherits(Lightbulb, EventEmitter);
 
 Lightbulb.prototype.consume = function(circuit){
     var minResistor = (circuit.voltage - this.voltageDrop) / this.forwardCurrent;
-    console.log('minResistor ', circuit);
     if (circuit.resistance <  minResistor){
         this.emit('explode');
     } else if (circuit.voltage === 0) {

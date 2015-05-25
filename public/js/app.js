@@ -98,8 +98,7 @@ Circuit.prototype.getWatts = function(){
 };
 
 Circuit.prototype.getStats = function(){
-    console.log('pre stat ', this.resistors);
-    console.log('getstats ', this.getResistance());
+
     return {
         'poweredOn': this.isOn,
         "batteries": this.batteries,
@@ -140,7 +139,6 @@ util.inherits(Lightbulb, EventEmitter);
 
 Lightbulb.prototype.consume = function(circuit){
     var minResistor = (circuit.voltage - this.voltageDrop) / this.forwardCurrent;
-    console.log('minResistor ', circuit);
     if (circuit.resistance <  minResistor){
         this.emit('explode');
     } else if (circuit.voltage === 0) {
