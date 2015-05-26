@@ -31,8 +31,8 @@ circuit.addBattery(battery5v)
 lightbulb.on('explode', function(){
         ui.emit('ui:update:lightbulb', 'BOOM! Everyone is dead.&#10;');
     })
-    .on('shine', function(){
-        ui.emit('ui:update:lightbulb', 'Light is shining&#10;');
+    .on('shine', function(brightness){
+        ui.emit('ui:update:lightbulb', 'Light is shining at ' + brightness.toFixed(2) + '&#10;');
     })
     .on('no-power', function(){
         ui.emit('ui:update:lightbulb', 'No power to bulb&#10;');

@@ -21,12 +21,12 @@ Lightbulb.prototype.consume = function(circuit){
     } else if (circuit.voltage === 0) {
         this.emit('no-power');
     } else {
-        this.emit('shine');
+        this.emit('shine', minResistor / circuit.resistance);
     }
 };
 
-Lightbulb.prototype.illuminate = function(){
-    console.log('light is shining')
+Lightbulb.prototype.illuminate = function(brightness){
+    console.log('light is shining at brightness of ', brightness);
 };
 
 Lightbulb.prototype.explode = function(){
