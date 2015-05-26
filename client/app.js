@@ -1,7 +1,6 @@
 var ui = require('./ui');
 var Battery = require('./components/battery');
 var Resistor = require('./components/resistor');
-var calculator = require('./calculator');
 var Lightbulb = require('./components/lightbulb');
 var Circuit = require('./circuit');
 
