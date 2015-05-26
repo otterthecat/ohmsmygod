@@ -26,12 +26,11 @@ Lightbulb.prototype.consume = function(circuit){
 };
 
 Lightbulb.prototype.illuminate = function(brightness){
-    console.log('light is shining at brightness of ', brightness);
+    console.log('placeholder for illumination action');
 };
 
 Lightbulb.prototype.explode = function(){
-    console.log('BOOM! Everyone is dead');
+    console.log('placeholder for exploding action');
 };
-
 
 module.exports = Lightbulb;

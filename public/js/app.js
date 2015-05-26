@@ -41,9 +41,7 @@ lightbulb.on('explode', function(){
 
 ui.setOnSwitch('#power-on')
     .setOffSwitch('#power-off')
-    .setSlider('#slider', '#slider-value', function(value){
-        circuit.setResitance(value);
-    }.bind(ui))
+    .setSlider('#slider', '#slider-value', circuit.setResitance.bind(circuit))
     .on('switch:on', circuit.turnOn.bind(circuit))
     .on('switch:off', circuit.turnOff.bind(circuit));
 
@@ -198,11 +196,11 @@ Lightbulb.prototype.consume = function(circuit){
 };
 
 Lightbulb.prototype.illuminate = function(brightness){
-    console.log('light is shining at brightness of ', brightness);
+    console.log('placeholder for illumination action');
 };
 
 Lightbulb.prototype.explode = function(){
-    console.log('BOOM! Everyone is dead');
+    console.log('placeholder for exploding action');
 };
 
 
